@@ -28,7 +28,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieSession({name: 'user',
 secret: process.env.LINKEDIN_CLIENT_SECRET
-}))
+}));
 
 
 app.get('/auth/linkedin',
@@ -37,11 +37,12 @@ app.get('/auth/linkedin',
     // The request will be redirected to LinkedIn for authentication, so this
     // function will not be called.
   });
-  app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
+app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
     successRedirect: '/',
     failureRedirect: '/login'
   }));
-  passport.use(new LinkedInStrategy({
+
+passport.use(new LinkedInStrategy({
     clientID: process.env.LINKEDIN_CLIENT_ID,
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
     // callbackURL: "http://localhost:3000/auth/linkedin/callback",
@@ -53,6 +54,7 @@ app.get('/auth/linkedin',
     console.log(profile.displayName);
     done(null, {id: profile.id, displayName: profile.displayName})
   }));
+
 passport.serializeUser(function(user, done) {
   done(null, user);
 });
@@ -62,7 +64,7 @@ passport.deserializeUser(function(user, done) {
 });
 app.use(function (req, res, next) {
   res.locals.user = req.session.passport.user
-  next()
+  next();
 })
 
 app.use('/', routes);
