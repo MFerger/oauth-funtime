@@ -4,15 +4,18 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
+var passport = require('passport');
 var LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 var routes = require('./routes/index');
 var users = require('./routes/users');
-var passport = require('passport');
 var app = express();
 var cookieSession = require('cookie-session');
 require('dotenv').load()
 app.use(passport.initialize());
-app.use(passport.session({ secret: process.env.LINKEDIN_CLIENT_SECRET}));
+// app.use(passport.session())
+app.use(passport.session());
+app.use(cookieSession({name: 'user', secret: process.env.LINKEDIN_CLIENT_SECRET
+}))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -25,7 +28,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(cookieSession({name: 'user', keys: ['key1', 'key2'] }))
 
 passport.use(new LinkedInStrategy({
     clientID: process.env.LINKEDIN_CLIENT_ID,
