@@ -5,6 +5,11 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
+
+    {{#if profile}}
+    <img src="{{profile.pictureUrl}}">
+    {{/if}}
+
     {{#if user}}
      <p>
        Hello {{user.displayName}}

@@ -11,6 +11,8 @@ var users = require('./routes/users');
 var app = express();
 var cookieSession = require('cookie-session');
 require('dotenv').load()
+app.use(passport.initialize());
+app.use(passport.session());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -21,15 +23,19 @@ app.set('view engine', 'hbs');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieSession({name: 'user', secret: process.env.LINKEDIN_CLIENT_SECRET }))
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(passport.initialize());
-// app.use(passport.session())
-app.use(passport.session());
-app.use(cookieSession({name: 'user',
-secret: process.env.LINKEDIN_CLIENT_SECRET
-}));
 
+passport.use(new LinkedInStrategy({
+  clientID: process.env.LINKEDIN_CLIENT_ID,
+  clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+  callbackURL: process.env.HOST + "/auth/linkedin/callback",
+  scope: ['r_emailaddress', 'r_basicprofile'],
+  state: true
+}, function(accessToken, refreshToken, profile, done) {
+  done(null, {id: profile.id, displayName: profile.displayName, token: accessToken})
+}));
 
 app.get('/auth/linkedin',
   passport.authenticate('linkedin'),
@@ -37,24 +43,10 @@ app.get('/auth/linkedin',
     // The request will be redirected to LinkedIn for authentication, so this
     // function will not be called.
   });
-app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
+  app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
     successRedirect: '/',
     failureRedirect: '/login'
   }));
-
-passport.use(new LinkedInStrategy({
-    clientID: process.env.LINKEDIN_CLIENT_ID,
-    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    // callbackURL: "http://localhost:3000/auth/linkedin/callback",
-    callbackURL: process.env.HOST + "/auth/linkedin/callback",
-    scope: ['r_emailaddress', 'r_basicprofile'],
-    state: true
-  },
-  function(accessToken, refreshToken, profile, done) {
-    console.log(profile.displayName);
-    done(null, {id: profile.id, displayName: profile.displayName})
-  }));
-
 passport.serializeUser(function(user, done) {
   done(null, user);
 });
@@ -62,9 +54,10 @@ passport.serializeUser(function(user, done) {
 passport.deserializeUser(function(user, done) {
   done(null, user)
 });
+
 app.use(function (req, res, next) {
   res.locals.user = req.session.passport.user
-  next();
+  next()
 })
 
 app.use('/', routes);
