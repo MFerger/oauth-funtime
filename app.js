@@ -11,15 +11,16 @@ var users = require('./routes/users');
 var app = express();
 var cookieSession = require('cookie-session');
 require('dotenv').load()
-app.use(passport.initialize());
-// app.use(passport.session())
-app.use(passport.session());
-app.use(cookieSession({name: 'user', secret: process.env.LINKEDIN_CLIENT_SECRET
-}))
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
+app.use(passport.initialize());
+// app.use(passport.session())
+app.use(passport.session());
+app.use(cookieSession({name: 'user',
+secret: process.env.LINKEDIN_CLIENT_SECRET
+}))
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
