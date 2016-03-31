@@ -15,12 +15,6 @@ require('dotenv').load()
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'hbs');
-app.use(passport.initialize());
-// app.use(passport.session())
-app.use(passport.session());
-app.use(cookieSession({name: 'user',
-secret: process.env.LINKEDIN_CLIENT_SECRET
-}))
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -29,19 +23,13 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(passport.initialize());
+// app.use(passport.session())
+app.use(passport.session());
+app.use(cookieSession({name: 'user',
+secret: process.env.LINKEDIN_CLIENT_SECRET
+}))
 
-passport.use(new LinkedInStrategy({
-    clientID: process.env.LINKEDIN_CLIENT_ID,
-    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
-    // callbackURL: "http://localhost:3000/auth/linkedin/callback",
-    callbackURL: process.env.HOST + "/auth/linkedin/callback",
-    scope: ['r_emailaddress', 'r_basicprofile'],
-    state: true
-  },
-  function(accessToken, refreshToken, profile, done) {
-    console.log(profile.displayName);
-    done(null, {id: profile.id, displayName: profile.displayName})
-  }));
 
 app.get('/auth/linkedin',
   passport.authenticate('linkedin'),
@@ -52,6 +40,18 @@ app.get('/auth/linkedin',
   app.get('/auth/linkedin/callback', passport.authenticate('linkedin', {
     successRedirect: '/',
     failureRedirect: '/login'
+  }));
+  passport.use(new LinkedInStrategy({
+    clientID: process.env.LINKEDIN_CLIENT_ID,
+    clientSecret: process.env.LINKEDIN_CLIENT_SECRET,
+    // callbackURL: "http://localhost:3000/auth/linkedin/callback",
+    callbackURL: process.env.HOST + "/auth/linkedin/callback",
+    scope: ['r_emailaddress', 'r_basicprofile'],
+    state: true
+  },
+  function(accessToken, refreshToken, profile, done) {
+    console.log(profile.displayName);
+    done(null, {id: profile.id, displayName: profile.displayName})
   }));
 passport.serializeUser(function(user, done) {
   done(null, user);
